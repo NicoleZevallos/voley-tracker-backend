@@ -6,16 +6,15 @@ from tests.test_db import engine, override_get_db, TestingSessionLocal
 from app.models.user import User
 from app.database import Base, get_db
 
-from app.models import user
-from app.models import role
-
 app.dependency_overrides[get_db] = override_get_db
-Base.metadata.create_all(bind=engine)
 
 client = TestClient(app)
 
 @pytest.fixture(scope="module", autouse=True)
 def setup_test_user():
+    from app.models import user
+    from app.models import role
+    Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
     email = "testlogin@example.com"
     try:
