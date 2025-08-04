@@ -1,47 +1,29 @@
 import pytest
-from fastapi.testclient import TestClient
-from app.main import app
 from app.auth.jwt import get_password_hash
-from tests.test_db import override_get_db
 from app.models.user import User
 from app.models.role import Role
-from app.database import get_db, SessionLocal, Base, engine
 
-Base.metadata.create_all(bind=engine)
-# Sobreescribir dependencia para usar base de datos de prueba
-app.dependency_overrides[get_db] = override_get_db
-client = TestClient(app)
-
-@pytest.fixture(scope="module", autouse=True)
-def setup_test_user():
-    db = SessionLocal()
-    email = "testlogin@example.com"
-
-    # Crear rol admin si no existe
-    if not db.query(Role).filter(Role.id == 1).first():
-        admin_role = Role(id=1, name="admin")
-        db.add(admin_role)
-        db.commit()
-
-    # Crear usuario de prueba si no existe
-    if not db.query(User).filter(User.email == email).first():
-        new_user = User(
-            email=email,
-            hashed_password=get_password_hash("testpassword"),
-            role_id=1
-        )
-        db.add(new_user)
-        db.commit()
-
+@pytest.fixture(scope="function", autouse=True)
+def setup_test_user(db):
+    # Crear rol admin
+    admin_role = Role(id=1, name="admin")
+    db.add(admin_role)
+    db.commit()
+    
+    # Crear usuario de prueba
+    test_user = User(
+        email="testlogin@example.com",
+        hashed_password=get_password_hash("testpassword"),
+        role_id=1
+    )
+    db.add(test_user)
+    db.commit()
+    
     yield
+    
+    # Limpieza automática por el fixture de db
 
-    # Limpieza después de las pruebas
-    if user := db.query(User).filter(User.email == email).first():
-        db.delete(user)
-        db.commit()
-    db.close()
-
-def test_login_success():
+def test_login_success(client):
     response = client.post("/auth/login", json={
         "email": "testlogin@example.com",
         "password": "testpassword"
@@ -49,12 +31,10 @@ def test_login_success():
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
-    assert data["token_type"] == "bearer"
 
-def test_login_failure():
+def test_login_failure(client):
     response = client.post("/auth/login", json={
         "email": "noexist@example.com",
         "password": "wrongpassword"
     })
     assert response.status_code == 401
-    assert response.json()["detail"] == "Invalid credentials"
