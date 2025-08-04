@@ -2,6 +2,7 @@ import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
 from dotenv import load_dotenv
+from sqlalchemy.pool import StaticPool
 
 load_dotenv()
 
@@ -9,10 +10,11 @@ Base = declarative_base()
 
 ENV = os.getenv("ENV", "DEV")
 if ENV == "TEST":
-    SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+    SQLALCHEMY_DATABASE_URL = "sqlite://"
     engine = create_engine(
         SQLALCHEMY_DATABASE_URL,
-        connect_args={"check_same_thread": False}
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool
     )
 else:
     USE_WINDOWS_AUTH = os.getenv("USE_WINDOWS_AUTH", "true").lower() == "true"
