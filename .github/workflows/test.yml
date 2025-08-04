@@ -24,5 +24,7 @@ jobs:
       - name: Run tests with coverage
         env:
           ENV: TEST
+          JWT_SECRET_KEY: "test_secret"
+          JWT_ALGORITHM: "HS256"
         run: |
           pytest --cov=app --cov-report=term-missing
