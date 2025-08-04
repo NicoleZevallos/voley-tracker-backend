@@ -1,5 +1,11 @@
 fastapi
 uvicorn
-python-jose
-passlib[bcrypt]
 sqlalchemy
+python-dotenv
+passlib[bcrypt]
+python-dotenv
+python-jose
+httpx
+pyodbc ; sys_platform == "win32"
+pytest
+pytest-cov
