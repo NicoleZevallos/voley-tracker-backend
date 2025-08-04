@@ -5,8 +5,9 @@ from app.auth.jwt import get_password_hash
 from tests.test_db import override_get_db
 from app.models.user import User
 from app.models.role import Role
-from app.database import get_db, SessionLocal
+from app.database import get_db, SessionLocal, Base, engine
 
+Base.metadata.create_all(bind=engine)
 # Sobreescribir dependencia para usar base de datos de prueba
 app.dependency_overrides[get_db] = override_get_db
 client = TestClient(app)
