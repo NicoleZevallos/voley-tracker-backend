@@ -3,6 +3,7 @@ uvicorn
 sqlalchemy
 python-dotenv
 passlib[bcrypt]
+python-dotenv
 python-jose
 httpx
 pyodbc ; sys_platform == "win32"

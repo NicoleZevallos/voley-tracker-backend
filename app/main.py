@@ -5,7 +5,6 @@ from app.routers import auth_router
 
 def create_app():
     app = FastAPI()
-
     init_db()
     seed_roles()
     app.include_router(auth_router.router, prefix="/auth", tags=["auth"])

@@ -23,6 +23,6 @@ jobs:
 
       - name: Run tests with coverage
         env:
-          DB_TYPE: test
+          ENV: TEST
         run: |
           pytest --cov=app --cov-report=term-missing

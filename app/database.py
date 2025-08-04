@@ -1,13 +1,42 @@
-# app/database.py
+import os
 from sqlalchemy import create_engine
 from sqlalchemy.orm import declarative_base, sessionmaker
-from app.models import user, role
+from dotenv import load_dotenv
+
+load_dotenv()
 
 Base = declarative_base()
 
-# Siempre usa SQLite en pruebas (seguro por override)
-SQLALCHEMY_DATABASE_URL = "sqlite:///./app.db"
+ENV = os.getenv("ENV", "DEV")
+if ENV == "TEST":
+    SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+    engine = create_engine(
+        SQLALCHEMY_DATABASE_URL,
+        connect_args={"check_same_thread": False}
+    )
+else:
+    USE_WINDOWS_AUTH = os.getenv("USE_WINDOWS_AUTH", "true").lower() == "true"
+    DB_SERVER = os.getenv("DB_SERVER", "localhost")
+    DB_NAME = os.getenv("DB_NAME", "VoleyTracker")
 
+    if USE_WINDOWS_AUTH:
+        # Autenticación con el usuario de Windows
+        SQLALCHEMY_DATABASE_URL = (
+            f"mssql+pyodbc://@{DB_SERVER}/{DB_NAME}"
+            "?driver=ODBC+Driver+17+for+SQL+Server"
+            "&trusted_connection=yes"
+        )
+    else:
+        # Autenticación con usuario y contraseña
+        DB_USER = os.getenv("DB_USER")
+        DB_PASSWORD = os.getenv("DB_PASSWORD")
+        SQLALCHEMY_DATABASE_URL = (
+            f"mssql+pyodbc://{DB_USER}:{DB_PASSWORD}@{DB_SERVER}/{DB_NAME}"
+            "?driver=ODBC+Driver+17+for+SQL+Server"
+        )
+
+    engine = create_engine(SQLALCHEMY_DATABASE_URL)
+    
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL,
     connect_args={"check_same_thread": False}
